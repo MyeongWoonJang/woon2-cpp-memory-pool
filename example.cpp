@@ -2,7 +2,7 @@
 #include "pool.hpp"
 #include <random>
 
-constexpr int size = 10;
+constexpr int size = 40;
 
 std::uniform_int_distribution<> uid{ 0, size + 4 };
 std::random_device rd;

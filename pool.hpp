@@ -73,7 +73,7 @@ private:
             if ( start_aligned.empty() ) return false;
 
             // cannot insertable if mem is "in" just left block
-            //     right block is not considered, right block's start is always over then mem.
+            //     right block is not considered, right block's start is always over than mem.
             //     so mem cannot be in range [right block start, right block start + right block size).
             auto just_left = --start_aligned.lower_bound( mem_block{ mem, 0 } );
             // no left, no intersection.
