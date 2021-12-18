@@ -1,44 +1,60 @@
 #include <iostream>
 #include "pool.hpp"
+#include <random>
+
+constexpr int size = 10;
+
+std::uniform_int_distribution<> uid{ 0, size + 4 };
+std::random_device rd;
+std::default_random_engine dre{ rd() };
 
 int main()
 {
-    pool a{ sizeof(int) * 100 };
-    int* b[ 105 ];
+    pool a{ ( sizeof( int ) + sizeof( double ) ) * size };
+    int* b[ size + 5 ];
+    double* c[ size + 5 ];
+    bool deallocated[ size + 5 ] = { false };
 
-    for ( int i = 0; i < 105; ++i )
+    for ( int i = 0; i < 4; ++i)
     {
-        try
+        for ( auto& check : deallocated )
         {
-            b[i] = a.alloc< int >( i );
-            std::cout << "value: " << *b[i] << '\n';
+            check = false;
         }
-        catch ( std::bad_alloc )
-        {
-            std::cout << i + 1 << " - bad_alloc\n";
-        }
-    }
 
-    for ( int i = 0; i < 105; ++i )
-    {
-        a.dealloc( b[i] );
-    }
+        std::cout << "Start ------------------------------------------------------\n";
+        a.debug_print();
 
-    for ( int i = 0; i < 105; ++i )
-    {
-        try
+        for ( int i = 0; i < size + 5; ++i )
         {
-            b[ i ] = a.alloc< int >( i );
-            std::cout << "value: " << *b[ i ] << '\n';
+            try
+            {
+                b[ i ] = a.alloc< int >( i );
+                c[ i ] = a.alloc< double >( i );
+                std::cout << "value: " << *b[ i ] << '\n';
+                std::cout << "value: " << *c[ i ] << '\n';
+            }
+            catch ( std::bad_alloc )
+            {
+                std::cout << i << " - bad_alloc\n";
+            }
         }
-        catch ( std::bad_alloc )
-        {
-            std::cout << i + 1 << " - bad_alloc\n";
-        }
-    }
 
-    for ( int i = 0; i < 105; ++i )
-    {
-        a.dealloc( b[ i ] );
+        for (;;)
+        {
+            auto val = uid( dre );
+
+            deallocated[ val ] = true;
+            a.dealloc( b[ val ] );
+            a.dealloc( c[ val ] );
+
+            bool over = true;
+            for ( const auto check : deallocated )
+            {
+                if ( !check ) over = false;
+            }
+
+            if ( over ) break;
+        }
     }
 }
