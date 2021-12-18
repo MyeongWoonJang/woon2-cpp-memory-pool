@@ -2,7 +2,6 @@
 #define _pool
 
 #include <set>
-#include <stack>
 
 class pool
 {
