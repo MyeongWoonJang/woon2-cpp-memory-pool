@@ -76,8 +76,10 @@ private:
             //     right block is not considered, right block's start is always over than mem.
             //     so mem cannot be in range [right block start, right block start + right block size).
             auto just_left = --start_aligned.lower_bound( mem_block{ mem, 0 } );
+
             // no left, no intersection.
             if ( just_left == start_aligned.end() ) return false;
+
             if ( just_left->start + just_left->size > mem ) return true;
             return false;
         }
@@ -120,8 +122,9 @@ private:
             // no empty block, no merge.
             if ( size_aligned.empty() )
             {
-                size_aligned.insert(new_empty_block);
-                start_aligned.insert(new_empty_block);
+                // just insert the block.
+                size_aligned.insert( new_empty_block );
+                start_aligned.insert( new_empty_block );
                 return;
             }
 
@@ -157,17 +160,23 @@ private:
             std::cout << "new merged start: " << (int)new_empty_block.start << '\n';
             std::cout << "new merged size: " << new_empty_block.size << '\n';
 
-            // extract every memory block merged.
+            // extract every memory block merged =============================
             // memory blocks in range [new_empty_block.start, exhausted) are merged-left.
             // memory blocks in range (exhausted, new_empty_block.start + new_empty_block.size) are merged-right.
             // so memory blocks in range [new_empty_block.start, new_empty_block.start + new_empty_block.size) are merged.
             auto upper_limit = new_empty_block.start + new_empty_block.size;
+
+            // process from left,
             for ( auto iter = start_aligned.lower_bound( new_empty_block ); iter != start_aligned.end(); )
             {
+                // to right.
                 if ( iter->start >= upper_limit ) break;
 
+                // extract from size_aligned blocks.
+                // a block's memory address is unique, but a block's size can be equal to other.
                 for ( auto size_iter = size_aligned.find(*iter);; ++size_iter )
                 {
+                    // evaluate blocks really same by memory address.
                     if ( *size_iter == *iter )
                     {
                         size_aligned.erase( size_iter );
@@ -175,11 +184,15 @@ private:
                     }
                 }
 
+                // extract from start_aligned blocks.
                 iter = start_aligned.erase( iter );
             }
+            // ===============================================================
 
+            // insert new merged block =======================================
             size_aligned.insert( new_empty_block );
             start_aligned.insert( new_empty_block );
+            // ===============================================================
 
             debug_print();
         }
@@ -222,16 +235,21 @@ public:
         // nullptr is not valid for deallocation.
         if ( !exhausted ) return;
         auto exhausted_mem = reinterpret_cast< byte* >( exhausted );
+
         // firstly check exhausted memory is in range of this pool.
         if ( exhausted_mem < raw_mem || exhausted_mem >= raw_mem + raw_size ) return;
+
         // secondly check received memory is insertable.
         if ( free_mem.cannot_insertable( exhausted_mem ) ) return;
-        // call destructor and invalidate pointer.
         // ===============================================================
+
+        // call destructor and invalidate pointer.
         exhausted->~Ty();
         exhausted = nullptr;
+
         // 0 size process ( don't have to return memory. )
         if ( sizeof( Ty ) == 0 ) return;
+
         // general process
         free_mem.return_mem( exhausted_mem, sizeof( Ty ) );
     }
