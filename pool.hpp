@@ -113,7 +113,7 @@ private:
 
         void return_mem( byte* const exhausted, const size_t size ) noexcept
         {
-            std::cout << "returning " << (int)exhausted << ", size: " << size << "...\n";
+            //std::cout << "returning " << (int)exhausted << ", size: " << size << "...\n";
 
             mem_block new_empty_block{ exhausted, size };
 
@@ -157,8 +157,8 @@ private:
                 else break;
             }
 
-            std::cout << "new merged start: " << (int)new_empty_block.start << '\n';
-            std::cout << "new merged size: " << new_empty_block.size << '\n';
+            //std::cout << "new merged start: " << (int)new_empty_block.start << '\n';
+            //std::cout << "new merged size: " << new_empty_block.size << '\n';
 
             // extract every memory block merged =============================
             // memory blocks in range [new_empty_block.start, exhausted) are merged-left.
@@ -194,7 +194,7 @@ private:
             start_aligned.insert( new_empty_block );
             // ===============================================================
 
-            debug_print();
+            //debug_print();
         }
 
         // Empty Memory Manager constructor ==================================
